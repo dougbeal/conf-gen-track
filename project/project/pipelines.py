@@ -5,6 +5,8 @@ try:
     from cStringIO import StringIO as BytesIO
 except ImportError:
     from io import BytesIO
+
+import os.path
     
 import scrapy
 import project.spiders.spin as spin
@@ -87,11 +89,13 @@ class PastebinPipeline(FilesPipeline):
     self.store.persist_file(path, buf, info)
 
     item = info.item
-    filename = u' '.join((item['emulator_name'], item['name']))
-    path = os.path.join(map(slugify, [ item['resolution'], filename ]))
-    
+    filename = u'_'.join([item['emulator_name'] , item['resolution'], item['name']])
+    slug = map(slugify, [item['emulator_name'], item['resolution'], filename ])
+    print slug
+    path = os.path.join(*slug)
+
     buf.seek(0)
-    print "file_downloaded: " + path
-    self.m_store.persist_file( os.path.join(path, name), buf, info)
+    print "file_downloaded: %s" % path
+    self.m_store.persist_file( path, buf, info)
                                
     return checksum
