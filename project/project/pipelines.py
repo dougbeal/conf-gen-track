@@ -47,7 +47,10 @@ def addRaw( url ):
     return re.sub(r"^(.*)/([^/]+)$",
                   r"\1/raw/\2",
                   url)
-  
+
+FILE_EXT = {
+  u'MEmu': ".mir"
+}  
 class PastebinPipeline(FilesPipeline):
 
   class SpiderInfoItem(MediaPipeline.SpiderInfo):
@@ -79,7 +82,8 @@ class PastebinPipeline(FilesPipeline):
     dlist = [self._process_request(r, info) for r in requests]
     dfd = DeferredList(dlist, consumeErrors=1)
     return dfd.addCallback(self.item_completed, item, info)
-  
+
+
   def file_downloaded(self, response, request, info):
     path = self.file_path(request, response=response, info=info)
     buf = BytesIO(response.body)
@@ -89,10 +93,11 @@ class PastebinPipeline(FilesPipeline):
     self.store.persist_file(path, buf, info)
 
     item = info.item
+    ext = FILE_EXT.get(item['emulator_name'], u'')
     filename = u'_'.join([item['emulator_name'] , item['resolution'], item['name']])
     slug = map(slugify, [item['emulator_name'], item['resolution'], filename ])
     print slug
-    path = os.path.join(*slug)
+    path = os.path.join(*slug) + ext
 
     buf.seek(0)
     print "file_downloaded: %s" % path
